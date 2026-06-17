@@ -1198,9 +1198,13 @@ int SSL_set_session_ticket_ext_cb(SSL *s, tls_session_ticket_ext_cb_fn cb,
 int SSL_set_session_ticket_ext(SSL *s, void *ext_data, int ext_len)
 {
     SSL_CONNECTION *sc = SSL_CONNECTION_FROM_SSL(s);
+
     if (sc == NULL || ext_len < 0 || ext_len > 0xffff)
         return 0;
+
     OPENSSL_free(sc->ext.session_ticket);
+    sc->ext.session_ticket = NULL;
+
     if (ext_data != NULL) {
         sc->ext.session_ticket = OPENSSL_malloc(sizeof(TLS_SESSION_TICKET_EXT) + ext_len);
         if (sc->ext.session_ticket == NULL)
@@ -1208,9 +1212,8 @@ int SSL_set_session_ticket_ext(SSL *s, void *ext_data, int ext_len)
         sc->ext.session_ticket->length = ext_len;
         sc->ext.session_ticket->data = sc->ext.session_ticket + 1;
         memcpy(sc->ext.session_ticket->data, ext_data, ext_len);
-    } else {
-        sc->ext.session_ticket = NULL;
     }
+
     return 1;
 }
 
